@@ -109,11 +109,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Airflow hook to interact with GeoNode.</span>
 <span class="sd">    Methods list:</span>
+
 <span class="sd">    * import_layer: runs the &quot;importlayers&quot; command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.</span>
 <span class="sd">    * publish_layer: publishes a layer uploaded to the database in GeoServer.</span>
 <span class="sd">    * update_layer: runs the &quot;updatelayers&quot; command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.</span>
 <span class="sd">    * upload_dataset: uploads a layer in *.zip*, &quot;.shp&quot;, &quot;dbf&quot;, &quot;shx&quot;, &quot;prj&quot; or &quot;.tif&quot; format to GeoNode via API v2.</span>
-<span class="sd">    * upload_style: uploads a style in &quot;.sld&quot; format to GeoServer. </span>
+<span class="sd">    * upload_style: uploads a style in &quot;.sld&quot; format to GeoServer.</span>
 <span class="sd">    * update_style: update an existing style.</span>
 <span class="sd">    * update_layer_style: assigns an already uploaded style to a layer.</span>
 <span class="sd">    * upload_map: creates a map in GeoNode via API v2 from a set of datasets.</span>
@@ -909,14 +910,16 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The upload_metadata method is designed to update metadata for any resource type on GeoNode by API v2</span>
 <span class="sd">        Metadata allowed:</span>
+
 <span class="sd">        - Title</span>
 <span class="sd">        - Supplemental information</span>
 
 <span class="sd">        :param resource_type: Type of resource wich want to be updated his metadata.</span>
-<span class="sd">        Resource type allowed:</span>
-<span class="sd">        - dataset</span>
-<span class="sd">        - documents</span>
-<span class="sd">        - maps</span>
+<span class="sd">            Resource type allowed:</span>
+
+<span class="sd">            - dataset</span>
+<span class="sd">            - documents</span>
+<span class="sd">            - maps</span>
 
 <span class="sd">        :param resource_id: ID of the resource whose metadata want to update.</span>
 <span class="sd">        :param resource_title: The title to be placed on the resource.</span>
@@ -970,51 +973,53 @@
 <span class="sd">        </span>
 <span class="sd">        Example JSON:</span>
 <span class="sd">        .. code-block:: json</span>
+
 <span class="sd">            {</span>
-<span class="sd">            &quot;users&quot;: [</span>
+<span class="sd">                &quot;users&quot;: [</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;user_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;none&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;none&quot;</span>
 <span class="sd">                },</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;user_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;view&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;view&quot;</span>
 <span class="sd">                },</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;user_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;download&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;download&quot;</span>
 <span class="sd">                },</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;user_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;edit&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;edit&quot;</span>
 <span class="sd">                },</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;user_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;manage&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;manage&quot;</span>
 <span class="sd">                },</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;user_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;owner&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;owner&quot;</span>
 <span class="sd">                }</span>
 <span class="sd">            ],</span>
-<span class="sd">            &quot;groups&quot;: [</span>
+<span class="sd">                &quot;groups&quot;: [</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;group_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;none&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;group_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;none&quot;</span>
 <span class="sd">                },</span>
 <span class="sd">                {</span>
-<span class="sd">                    &quot;id&quot;: &lt;group_id&gt;,</span>
-<span class="sd">                    &quot;permissions&quot;: &quot;none&quot;</span>
+<span class="sd">                &quot;id&quot;: &lt;group_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;none&quot;</span>
 <span class="sd">                }</span>
 <span class="sd">            ],</span>
-<span class="sd">            &quot;organizations&quot;: [</span>
+<span class="sd">                &quot;organizations&quot;: [</span>
 <span class="sd">                {</span>
 <span class="sd">                &quot;id&quot;: &lt;organization_id&gt;,</span>
 <span class="sd">                &quot;permissions&quot;: &quot;edit&quot;</span>
 <span class="sd">                }</span>
-<span class="sd">            ]</span>
-<span class="sd">        }</span>
 
+<span class="sd">            ]</span>
+
+<span class="sd">        }</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/resources/</span><span class="si">{</span><span class="n">resource_id</span><span class="si">}</span><span class="s1">/permissions&#39;</span>
