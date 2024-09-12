@@ -3,10 +3,10 @@ name: Publish Github Pages Sphinx
 on:
   push:
     branches:
-      - sphinx-actions
+      - main
   pull_request:
     branches:
-      - sphinx-actions
+      - main
 
 jobs:
   build-docs:
