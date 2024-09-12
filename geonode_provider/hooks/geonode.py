@@ -31,7 +31,8 @@ import json
 
 class GeoNodeHook(BaseHook):
     """
-    Airflow hook to interact with GeoNode-PRUEBA.
+    Airflow hook to interact with GeoNode-PRUEBAS.
+    
     Methods list:
 
     * import_layer: runs the "importlayers" command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.
