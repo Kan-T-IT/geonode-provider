@@ -1,11 +1,10 @@
-# Simple workflow for deploying static content to Pages
-name: Deploy static content to Pages
+name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: ["main"]
-
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Publish Github Pages Sphinx"]
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -18,10 +17,11 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,11 +29,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Adjusted to upload the specific path to your HTML files
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the HTML build from the docs/_build/html folder
           path: 'docs/_build/html'
 
       - name: Deploy to GitHub Pages
