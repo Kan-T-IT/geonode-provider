@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>geonode_provider.hooks.geonode &mdash; Geonode Provider 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Geonode Provider
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">geonode_provider</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Geonode Provider</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../geonode_provider.html">geonode_provider</a></li>
+      <li class="breadcrumb-item active">geonode_provider.hooks.geonode</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for geonode_provider.hooks.geonode</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+<span class="c1"># Provider developed by Fawzi El Gamal from KAN&#39;s Territory &amp; IT ETL team.</span>
+
+
+<span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
+<span class="kn">from</span> <span class="nn">airflow.contrib.hooks.ssh_hook</span> <span class="kn">import</span> <span class="n">SSHHook</span>
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BufferedReader</span><span class="p">,</span> <span class="n">IOBase</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<div class="viewcode-block" id="GeoNodeHook">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook">[docs]</a>
+<span class="k">class</span> <span class="nc">GeoNodeHook</span><span class="p">(</span><span class="n">BaseHook</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Airflow hook to interact with GeoNode.</span>
+<span class="sd">    Methods list:</span>
+
+<span class="sd">    * import_layer: runs the &quot;importlayers&quot; command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.</span>
+<span class="sd">    * publish_layer: publishes a layer uploaded to the database in GeoServer.</span>
+<span class="sd">    * update_layer: runs the &quot;updatelayers&quot; command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.</span>
+<span class="sd">    * upload_dataset: uploads a layer in *.zip*, &quot;.shp&quot;, &quot;dbf&quot;, &quot;shx&quot;, &quot;prj&quot; or &quot;.tif&quot; format to GeoNode via API v2.</span>
+<span class="sd">    * upload_style: uploads a style in &quot;.sld&quot; format to GeoServer.</span>
+<span class="sd">    * update_style: update an existing style.</span>
+<span class="sd">    * update_layer_style: assigns an already uploaded style to a layer.</span>
+<span class="sd">    * upload_map: creates a map in GeoNode via API v2 from a set of datasets.</span>
+<span class="sd">    * upload_document: uploads a document to GeoNode via API v2.</span>
+<span class="sd">    * upload_metadata: uploads/sets metadata for a given type of resource (for the moment title and supplementary information).</span>
+<span class="sd">    * set_permiss: sets permissions for a given resource.</span>
+<span class="sd">    * get_execution_information: gets information/metadata about a performed execution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn_name_attr</span> <span class="o">=</span> <span class="s1">&#39;geonode_conn_id&#39;</span>
+    <span class="n">default_conn_name</span> <span class="o">=</span> <span class="s2">&quot;geonode_default&quot;</span>
+    <span class="n">conn_type</span> <span class="o">=</span> <span class="s1">&#39;geonode&#39;</span>
+    <span class="n">hook_name</span> <span class="o">=</span> <span class="s1">&#39;GeoNode&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geonode_conn_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span><span class="n">geonode_conn_id</span><span class="p">)</span>
+        <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">extra_dejson</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">login</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">password</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;gn_api_token&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;gs_username&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;gs_password&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssh_host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;ssh_host&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssh_port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;ssh_port&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssh_username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;ssh_username&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssh_password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="s2">&quot;ssh_password&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;&quot;Base URL&quot;, &quot;GeoNode username&quot;, &quot;GeoNode password&quot; or &quot;GeoNode Token&quot; fields are required.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;You must to define an API Token or the GeoNode username and password.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;You must to define GeoNode or GeoServer username and password to log into GeoServer.&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;If you define a GeoServer username you must also define the GeoServer password&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;If you define a GeoServer password you must also define the GeoServer username&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_password</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;You must to define SSH connection parameters.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># extras = self.conn.extra_dejson</span>
+        <span class="c1"># self.token = extras[&quot;token&quot;]</span>
+
+    <span class="k">def</span> <span class="nf">_get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dict</span><span class="p">,</span> <span class="n">field_name</span><span class="p">):</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;extra__geonode__&quot;</span>
+        <span class="k">if</span> <span class="n">field_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;extra__&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Got prefixed name </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">; please remove the &#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">&#39; prefix &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;when using this method.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">extra_dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">extra_dict</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">extra_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GeoNodeHook.test_connection">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.test_connection">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+        <span class="n">geonode_login</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/es-es/admin/login/&quot;</span>
+        <span class="n">api_token_test_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/v2/users&quot;</span>
+        <span class="n">geoserver_login</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/geoserver/j_spring_security_check&quot;</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Referer&quot;</span><span class="p">:</span> <span class="n">geonode_login</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">geonode_login</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;name=&quot;csrfmiddlewaretoken&quot; value=&quot;([^&quot;]+)&quot;&#39;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">csrf_token</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">csrf_token</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">60</span> <span class="ow">and</span> <span class="n">csrf_token</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">csrf_token</span> <span class="o">=</span> <span class="n">csrf_token</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">csrf_token</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">csrf_token</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">hearders</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_token_test_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">hearders</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Error authenticating to GeoNode with GeoNode API Token&quot;</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Referer&quot;</span><span class="p">:</span> <span class="n">geonode_login</span>
+                <span class="p">}</span>
+                <span class="n">datos</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;csrfmiddlewaretoken&quot;</span><span class="p">:</span> <span class="n">csrf_token</span><span class="p">,</span>
+                    <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span>
+                    <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">,</span>
+                    <span class="s2">&quot;next&quot;</span><span class="p">:</span> <span class="s2">&quot;/es-es/admin/&quot;</span>
+                <span class="p">}</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">geonode_login</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">datos</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span> <span class="o">!=</span> <span class="n">geonode_login</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Error authenticating to GeoNode with username and password&quot;</span>
+                    
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Error authenticating to GeoNode&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> 
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Error getting to CSRF Token&quot;</span>
+
+        <span class="c1"># Authentication to GeoServer</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">,</span>
+            <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">geoserver_login</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/geoserver/web/?0&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response url: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Error authenticating to GeoServer&quot;</span>
+        
+        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh_password</span><span class="p">]):</span>
+            <span class="n">ssh</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span>
+                    <span class="n">remote_host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_host</span><span class="p">,</span>
+                    <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_username</span><span class="p">,</span> 
+                    <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_password</span>
+                <span class="p">)</span>
+            <span class="n">ssh_test</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">test_connection</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ssh_test</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Connection successfully tested&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;SSH </span><span class="si">{</span><span class="n">ssh_test</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.import_layer">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.import_layer">[docs]</a>
+    <span class="k">def</span> <span class="nf">import_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers_folder_path</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method allows to update datasets to GeoServer by passing datasets directory. Just works with directories, not with single files.</span>
+<span class="sd">        The method uses an SSH connection to execute a Docker command within GeoNode&#39;s container.</span>
+
+<span class="sd">        :param layers_folder_path: Path to datasets directory/folder.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ssh</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span>
+            <span class="n">remote_host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_host</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_username</span><span class="p">,</span> 
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_password</span>
+        <span class="p">)</span>
+
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;docker exec django4geonode python manage.py importlayers </span><span class="si">{</span><span class="n">layers_folder_path</span><span class="si">}</span><span class="s1">&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh_client</span><span class="p">:</span>
+                <span class="n">exit_status</span><span class="p">,</span> <span class="n">agg_stdout</span><span class="p">,</span> <span class="n">agg_stderr</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">exec_ssh_client_command</span><span class="p">(</span>
+                <span class="n">ssh_client</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1800</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">get_pty</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+            <span class="n">agg_stdout</span> <span class="o">=</span> <span class="n">agg_stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Output data: \{&#39;success&#39;: \[(.*?)\], &#39;errors&#39;: \[(.*?)\]\}&quot;</span><span class="p">)</span>
+            <span class="c1"># pattern = re.compile(rf&quot;Output data: \{{&#39;success&#39;: \[&#39;{re.escape(os.path.basename(layers_folder_path))}&#39;\], &#39;errors&#39;: \[\]\}}&quot;)</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">agg_stdout</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">success_files</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">error_files</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">success_files</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">error_files</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error importing layers from </span><span class="si">{</span><span class="n">layers_folder_path</span><span class="si">}</span><span class="s2"> path. Error files </span><span class="si">{</span><span class="n">error_files</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>                    
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error importing layers from </span><span class="si">{</span><span class="n">layers_folder_path</span><span class="si">}</span><span class="s2"> path.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">exit_status</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error importing layers from </span><span class="si">{</span><span class="n">layers_folder_path</span><span class="si">}</span><span class="s2"> path&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">agg_stdout</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;exit_status </span><span class="si">{</span><span class="n">exit_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;agg_stderr </span><span class="si">{</span><span class="n">agg_stderr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Layers imported successfully&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;exit_status </span><span class="si">{</span><span class="n">exit_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;agg_stderr </span><span class="si">{</span><span class="n">agg_stderr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error importing layers: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Layer import failed&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error importing layers: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Layer import failed&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.publish_layer">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.publish_layer">[docs]</a>
+    <span class="k">def</span> <span class="nf">publish_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_names</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is utilized to publish a layer to GeoServer by utilizing an API &#39;POST&#39; request.</span>
+
+<span class="sd">        :param layer_names: The dataset name (not title) that must be published. Is possible to pass a list of datasets names to execute this method recursively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">login</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/xml&#39;</span><span class="p">}</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/geoserver/rest/workspaces/geonode/datastores/geonode_data/featuretypes&#39;</span>
+
+        <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="n">layer_name</span><span class="p">):</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;featureType&gt;&lt;name&gt;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1">&lt;/name&gt;&lt;enabled&gt;false&lt;/enabled&gt;&lt;/featureType&gt;&#39;</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">201</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Layer </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1"> published successfully.&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">500</span> <span class="ow">and</span> <span class="sa">f</span><span class="s2">&quot;Resource named &#39;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">&#39; already exists in store&quot;</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resource named &#39;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">&#39; already exists in store&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error publishing layer </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1">. Status code: </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">. Response </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layer_names</span><span class="p">:</span>
+                <span class="n">publish</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer_names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">publish</span><span class="p">(</span><span class="n">layer_names</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.update_layer">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.update_layer">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_names</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The update_layer method is an operator responsible for executing the update of layers.</span>
+<span class="sd">        The method uses an SSH connection to execute a Docker command within GeoNode&#39;s container.</span>
+
+<span class="sd">        :param layer_name: The dataset name (not title) that must be updated. Is possible to pass a list of datasets names to execute this method recursively.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AirflowException: Raised if an error occurs during the layer update process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing update_layer operator&#39;</span><span class="p">)</span>
+
+        <span class="n">ssh</span> <span class="o">=</span> <span class="n">SSHHook</span><span class="p">(</span>
+            <span class="n">remote_host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_host</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_port</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_username</span><span class="p">,</span> 
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssh_password</span>
+        <span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">layer_name</span><span class="p">):</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;docker exec django4geonode python manage.py updatelayers -f </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_conn</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh_client</span><span class="p">:</span>
+                    <span class="n">exit_status</span><span class="p">,</span> <span class="n">agg_stdout</span><span class="p">,</span> <span class="n">agg_stderr</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">exec_ssh_client_command</span><span class="p">(</span>
+                    <span class="n">ssh_client</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">get_pty</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">exit_status</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error updating layers </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">agg_stdout</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;exit_status </span><span class="si">{</span><span class="n">exit_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;agg_stderr </span><span class="si">{</span><span class="n">agg_stderr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Layer update successful&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;exit_status </span><span class="si">{</span><span class="n">exit_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;agg_stderr </span><span class="si">{</span><span class="n">agg_stderr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error importing layers: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Layer update failed&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error updating layer: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Layer update failed&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layer_names</span><span class="p">:</span>
+                <span class="n">update</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer_names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">update</span><span class="p">(</span><span class="n">layer_names</span><span class="p">)</span>
+        
+        <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.upload_dataset">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.upload_dataset">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method upload a dataset by GeoNode v2 API.</span>
+<span class="sd">        Datasets can be in the following formats:</span>
+<span class="sd">        - .zip</span>
+<span class="sd">        - .shx, .prj, .shp and .dbf</span>
+<span class="sd">        - .tif</span>
+
+<span class="sd">        :param dataset_path: The dataset path that must be uploaded. The path can be a directory/folder or a single file.</span>
+
+<span class="sd">        Returns: </span>
+<span class="sd">            For vector .zip datasets, a dictionary (json) is returned with the ID of the dataset. For individual vector or rasters datasets, the run/execution ID is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">):</span>
+            <span class="n">base</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
+            <span class="n">dataset_title</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dataset_title&quot;</span><span class="p">:</span> <span class="n">dataset_title</span><span class="p">,</span>
+                <span class="s2">&quot;charset&quot;</span><span class="p">:</span> <span class="s2">&quot;UTF-8&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">)</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">session</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ext</span><span class="p">:</span> <span class="c1"># For directories/folders</span>
+                <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">subdirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">):</span>
+                    <span class="n">resources_uploaded</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                        <span class="n">_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scanning: </span><span class="si">{</span><span class="n">_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">_file</span><span class="p">):</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The selected file path does not exist: </span><span class="si">{</span><span class="n">_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="k">continue</span>
+                        <span class="n">spatial_files</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;dbf_file&quot;</span><span class="p">,</span> <span class="s2">&quot;shx_file&quot;</span><span class="p">,</span> <span class="s2">&quot;prj_file&quot;</span><span class="p">,</span> <span class="s2">&quot;xml_file&quot;</span><span class="p">,</span> <span class="s2">&quot;sld_file&quot;</span><span class="p">)</span>
+                        <span class="n">base</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">_file</span><span class="p">)</span>
+                        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;dataset_title&quot;</span><span class="p">:</span> <span class="n">file</span><span class="p">,</span>
+                            <span class="s2">&quot;charset&quot;</span><span class="p">:</span> <span class="s2">&quot;UTF-8&quot;</span><span class="p">,</span>
+                        <span class="p">}</span>
+                        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;.shp&quot;</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">):</span>
+                                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sld_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">spatial_file</span> <span class="ow">in</span> <span class="n">spatial_files</span><span class="p">:</span>
+                                <span class="n">ext</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">spatial_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                                <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+                                <span class="c1"># sometimes a shapefile is missing an extra file,</span>
+                                <span class="c1"># allow for that</span>
+                                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+                                    <span class="n">params</span><span class="p">[</span><span class="n">spatial_file</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.tif&quot;</span><span class="p">,</span> <span class="s2">&quot;.zip&quot;</span><span class="p">):</span>
+                            <span class="n">file_path</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="n">ext</span>
+                            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;tif_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">):</span>
+                                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;xml_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">):</span>
+                                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sld_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                        <span class="n">files</span> <span class="o">=</span> <span class="p">{}</span>
+
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">base_file</span><span class="p">:</span>
+                            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;base_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_file</span>
+                            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">BufferedReader</span><span class="p">):</span>
+                                    <span class="n">files</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+                                    <span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+                            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;non_interactive&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                                    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                                        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/uploads/upload/&#39;</span><span class="p">,</span>
+                                        <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                                        <span class="n">data</span> <span class="o">=</span> <span class="n">params</span><span class="p">,</span>
+                                        <span class="n">files</span> <span class="o">=</span> <span class="n">files</span><span class="p">,</span>
+                                    <span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                                        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/uploads/upload/&#39;</span><span class="p">,</span>
+                                        <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+                                        <span class="n">data</span> <span class="o">=</span> <span class="n">params</span><span class="p">,</span>
+                                        <span class="n">files</span> <span class="o">=</span> <span class="n">files</span><span class="p">,</span>
+                                    <span class="p">)</span>
+                                <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">201</span><span class="p">):</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tif_file&quot;</span><span class="p">),</span> <span class="n">IOBase</span><span class="p">):</span>
+                                        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;tif_file&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                                        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sld_file&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                                    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.zip&quot;</span><span class="p">:</span>
+                                        <span class="n">resource_url_splited</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                                        <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">resource_url_splited</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">resource_url_splited</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset name: </span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">. Dataset ID: </span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                        <span class="n">resources_uploaded</span><span class="p">[</span><span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span> <span class="o">=</span> <span class="n">dataset_id</span>
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset uploaded successfully. </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset name: </span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">. Execution ID: </span><span class="si">{</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;execution_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                        <span class="n">resources_uploaded</span><span class="p">[</span><span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;execution_id&quot;</span><span class="p">]</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred uploading dataset </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+                            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resources uploaded successfully from </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">resources_uploaded</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">resources_uploaded</span>
+
+            <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;.tif&quot;</span><span class="p">,</span> <span class="s2">&quot;.shp&quot;</span><span class="p">):</span> <span class="c1"># For files</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset path: </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">spatial_files</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;dbf_file&quot;</span><span class="p">,</span> <span class="s2">&quot;shx_file&quot;</span><span class="p">,</span> <span class="s2">&quot;prj_file&quot;</span><span class="p">,</span> <span class="s2">&quot;xml_file&quot;</span><span class="p">,</span> <span class="s2">&quot;sld_file&quot;</span><span class="p">)</span>
+                <span class="n">base</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;charset&quot;</span><span class="p">:</span> <span class="s2">&quot;UTF-8&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+
+                <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;.shp&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">):</span>
+                        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sld_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">spatial_file</span> <span class="ow">in</span> <span class="n">spatial_files</span><span class="p">:</span>
+                        <span class="n">ext</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">spatial_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                        <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="c1"># sometimes a shapefile is missing an extra file,</span>
+                        <span class="c1"># allow for that</span>
+                        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+                            <span class="n">params</span><span class="p">[</span><span class="n">spatial_file</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">params</span><span class="p">[</span><span class="s2">&quot;tif_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">):</span>
+                        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;xml_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">):</span>
+                        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sld_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">.sld&#39;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+
+                <span class="n">files</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">base_file</span><span class="p">:</span>
+                    <span class="n">params</span><span class="p">[</span><span class="s2">&quot;base_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_file</span>
+                    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">BufferedReader</span><span class="p">):</span>
+                            <span class="n">files</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+                            <span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+                    <span class="n">params</span><span class="p">[</span><span class="s2">&quot;non_interactive&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                                <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/uploads/upload/&#39;</span><span class="p">,</span>
+                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                                <span class="n">data</span> <span class="o">=</span> <span class="n">params</span><span class="p">,</span>
+                                <span class="n">files</span> <span class="o">=</span> <span class="n">files</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                                <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/uploads/upload/&#39;</span><span class="p">,</span>
+                                <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+                                <span class="n">data</span> <span class="o">=</span> <span class="n">params</span><span class="p">,</span>
+                                <span class="n">files</span> <span class="o">=</span> <span class="n">files</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">201</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tif_file&quot;</span><span class="p">),</span> <span class="n">IOBase</span><span class="p">):</span>
+                                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;tif_file&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sld_file&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.zip&quot;</span><span class="p">:</span>
+                                <span class="n">resource_url_splited</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                                <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">resource_url_splited</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">resource_url_splited</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset uploaded successfully. </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;dataset_id&quot;</span><span class="p">:</span> <span class="n">dataset_id</span><span class="p">}</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset name: </span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">. Execution ID: </span><span class="si">{</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;execution_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;execution_id&quot;</span><span class="p">:</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;execution_id&quot;</span><span class="p">]}</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred uploading dataset </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Dataset format are not supported. Extension must to be &quot;.tif&quot;, &quot;.zip&quot; or &quot;.shp&quot;.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The path provided not exist.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.upload_style">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.upload_style">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">style_name</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Allows to upload a style in &#39;.sld&#39; format.</span>
+
+<span class="sd">        :param style_path: Path to &quot;.sld&quot; style file.</span>
+<span class="sd">        :param style_name: Optional. Name that the style will have in GeoServer. If isn&#39;t defined it will take the name of &quot;.sld&quot; file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">style_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.sld&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Style file must to be in &quot;.sld&quot; format&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">style_name</span><span class="p">:</span>
+            <span class="n">style_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">style_path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/geoserver/rest/workspaces/geonode/styles?name=</span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.ogc.sld+xml&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">style_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">style</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">201</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Style &quot;</span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s1">&quot; uploaded successfully.&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="sa">f</span><span class="s1">&#39;Style </span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s1"> already exists&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Style </span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s2"> already exists&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error uploading style </span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s2">. Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.update_style">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.update_style">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">style_name</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Allows to update an existing style in &#39;.sld&#39; format.</span>
+
+<span class="sd">        :param style_path: Path to &quot;.sld&quot; style file.</span>
+<span class="sd">        :param style_name: Optional. Name that the style will have in GeoServer. If isn&#39;t defined it will take the name of &quot;.sld&quot; file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">style_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.sld&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Style file must to be in &quot;.sld&quot; format&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">style_name</span><span class="p">:</span>
+            <span class="n">style_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">style_path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/geoserver/rest/workspaces/geonode/styles/</span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.ogc.sld+xml&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">style_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">style</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Style &quot;</span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s1">&quot; updated successfully.&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="sa">f</span><span class="s1">&#39;Invalid style:null&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The style </span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s2"> does not exist or the new style is invalid.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error updating style </span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s2">. Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.update_layer_style">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.update_layer_style">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_layer_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">style_name</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is employed to update the styles of a layer by utilizing an GeoServer API &#39;PUT&#39; request.</span>
+
+<span class="sd">        :param layer_name: The layer/dataset name (not title) which want to apply the style.</span>
+<span class="sd">        :param style_name: The style name (already uploaded) wich want to apply to the layer/dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/geoserver/rest/layers/geonode:</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_password</span><span class="p">)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-type&#39;</span><span class="p">:</span> <span class="s1">&#39;text/xml&#39;</span><span class="p">}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;layer&gt;&lt;defaultStyle&gt;&lt;name&gt;</span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s1">&lt;/name&gt;&lt;/defaultStyle&gt;&lt;/layer&gt;&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Style &quot;</span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s1">&quot; updated successfully for </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1"> dataset.&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to update </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s1"> style. Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.upload_map">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.upload_map">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets_ids</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">map_title</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The upload_map method is responsible for creating a map in GeoNode via API v2.</span>
+<span class="sd">        You must to choice datasets with the same projection and put them into a list. First put uppers datasets and then lowers (o base) datasets.</span>
+
+<span class="sd">        :param datasets_ids: List of datasets ids that should make up the map. Sorted from the outermost/upper layer to the lower ones.</span>
+<span class="sd">        :param map_title: The title to be placed on the map.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            This method returns a map ID just created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">srid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">maplayers_metadata</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">layers_metadata</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">dataset_id</span> <span class="ow">in</span> <span class="n">datasets_ids</span><span class="p">:</span>
+            <span class="n">map_create_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/v2/datasets/</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s2">/&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requesting: </span><span class="si">{</span><span class="n">map_create_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">map_create_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">map_create_url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">201</span><span class="p">]:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;There is no dataset with the entered ID&quot;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;There is no dataset with the entered ID&quot;</span><span class="p">)</span>                        
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting dataset information&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">srid</span><span class="p">:</span>
+                <span class="n">srid</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">][</span><span class="s2">&quot;srid&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">][</span><span class="s2">&quot;srid&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">srid</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Datasets projections must be are the same&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+            
+            <span class="n">maplayer_metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;extra_params&quot;</span><span class="p">:</span> 
+                <span class="p">{</span><span class="s2">&quot;msId&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;uuid&#39;</span><span class="p">]},</span>
+                <span class="s2">&quot;current_style&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;alternate&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;alternate&#39;</span><span class="p">],</span>
+            <span class="p">}</span>
+            <span class="n">layer_metadata</span> <span class="o">=</span>  <span class="p">{</span>
+                        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;uuid&#39;</span><span class="p">],</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">],</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;group&quot;</span><span class="p">:</span> <span class="s2">&quot;background&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">],</span>
+                        <span class="s2">&quot;hidden&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                        <span class="s2">&quot;singleTile&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;visibility&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;hideLoading&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;useForElevation&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;handleClickOnLayer&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;thumbURL&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;thumbnail_url&#39;</span><span class="p">],</span>
+                        <span class="s2">&quot;styles&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;alternate&#39;</span><span class="p">],</span>
+                        <span class="s2">&quot;extraParams&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;msId&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">][</span><span class="s1">&#39;uuid&#39;</span><span class="p">]},</span>
+                    <span class="p">}</span>
+            <span class="n">maplayers_metadata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">maplayer_metadata</span><span class="p">)</span>
+            <span class="n">layers_metadata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_metadata</span><span class="p">)</span>
+            <span class="n">bbox_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">][</span><span class="s2">&quot;bbox_polygon&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Lists to store minimum and maximum x and y coordinates</span>
+        <span class="n">x_min_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">y_min_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">x_max_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">y_max_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Iterates over each set of bbox coordinates</span>
+        <span class="k">for</span> <span class="n">bbox</span> <span class="ow">in</span> <span class="n">bbox_list</span><span class="p">:</span>
+            <span class="c1"># Extrae las coordenadas x e y de cada bbox</span>
+            <span class="n">x_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">y_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            
+            <span class="c1"># Calculates the minimum and maximum x and y coordinates of each bbox</span>
+            <span class="n">x_min_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x_coords</span><span class="p">))</span>
+            <span class="n">y_min_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_coords</span><span class="p">))</span>
+            <span class="n">x_max_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x_coords</span><span class="p">))</span>
+            <span class="n">y_max_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y_coords</span><span class="p">))</span>
+
+        <span class="c1"># Calculates the global minimum and maximum x and y coordinates</span>
+        <span class="n">x_min_global</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_min_list</span><span class="p">)</span>
+        <span class="n">y_min_global</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">y_min_list</span><span class="p">)</span>
+        <span class="n">x_max_global</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x_max_list</span><span class="p">)</span>
+        <span class="n">y_max_global</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_max_list</span><span class="p">)</span>
+
+        <span class="c1"># Calculates the maximum extension</span>
+        <span class="n">max_extension</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;minx&#39;</span><span class="p">:</span> <span class="n">x_min_global</span><span class="p">,</span>
+            <span class="s1">&#39;miny&#39;</span><span class="p">:</span> <span class="n">y_min_global</span><span class="p">,</span>
+            <span class="s1">&#39;maxx&#39;</span><span class="p">:</span> <span class="n">x_max_global</span><span class="p">,</span>
+            <span class="s1">&#39;maxy&#39;</span><span class="p">:</span> <span class="n">y_max_global</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Calculates the centroid</span>
+        <span class="n">centroide_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_min_global</span> <span class="o">+</span> <span class="n">x_max_global</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">centroide_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_min_global</span> <span class="o">+</span> <span class="n">y_max_global</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;maxExtent: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">max_extension</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">mapdata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;map&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;zoom&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">centroide_x</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">centroide_y</span><span class="p">,</span> <span class="s2">&quot;crs&quot;</span><span class="p">:</span> <span class="n">srid</span><span class="p">},</span>
+                <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;Default&quot;</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Default&quot;</span><span class="p">,</span> <span class="s2">&quot;expanded&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}],</span>
+                <span class="s2">&quot;maxExtent&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">max_extension</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                <span class="s2">&quot;mapOptions&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;projection&quot;</span><span class="p">:</span> <span class="n">srid</span><span class="p">,</span>
+                <span class="s2">&quot;backgrounds&quot;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;timelineData&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;dimensionData&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;widgetsConfig&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;layouts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;md&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;xxs&quot;</span><span class="p">:</span> <span class="p">[]}},</span>
+            <span class="s2">&quot;catalogServices&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;services&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;GeoNode Catalogue&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/catalogue/csw&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;csw&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoNode Catalogue&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;autoload&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;selectedService&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoNode Catalogue&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;mapInfoConfiguration&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">}</span>
+
+        <span class="n">mapdata</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">][</span><span class="s1">&#39;layers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">layers_metadata</span>
+
+        <span class="n">map_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">map_title</span><span class="p">,</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">mapdata</span><span class="p">,</span>
+            <span class="s2">&quot;maplayers&quot;</span><span class="p">:</span> <span class="n">maplayers_metadata</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/v2/maps/&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">map_data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">map_data</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">201</span><span class="p">:</span>
+                <span class="n">map_id</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;map&#39;</span><span class="p">][</span><span class="s2">&quot;pk&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Map created successfully with ID: </span><span class="si">{</span><span class="n">map_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">map_id</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred creating the map </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.upload_document">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.upload_document">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document_path</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method uploads a document to GeoNode via API v2.</span>
+
+<span class="sd">        :param document_path: Path to document that want to be uploaded.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            This method returns the document ID that just uploaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/documents&#39;</span>
+        <span class="n">document_title</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">document_path</span><span class="p">)</span>
+
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">document_title</span><span class="p">}</span>
+
+        <span class="n">files</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;doc_file&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">document_path</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">document_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="s1">&#39;document/pdf&#39;</span><span class="p">))]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">),</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">201</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Document uploaded successfuly. Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">. </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">document_id</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;document&quot;</span><span class="p">][</span><span class="s2">&quot;pk&quot;</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">document_id</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed uploaded document: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+        
+<div class="viewcode-block" id="GeoNodeHook.upload_metadata">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.upload_metadata">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource_type</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">resource_title</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resource_supplemental_information</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The upload_metadata method is designed to update metadata for any resource type on GeoNode by API v2</span>
+<span class="sd">        Metadata allowed:</span>
+
+<span class="sd">        - Title</span>
+<span class="sd">        - Supplemental information</span>
+
+<span class="sd">        :param resource_type: Type of resource wich want to be updated his metadata.</span>
+<span class="sd">            Resource type allowed:</span>
+
+<span class="sd">            - dataset</span>
+<span class="sd">            - documents</span>
+<span class="sd">            - maps</span>
+
+<span class="sd">        :param resource_id: ID of the resource whose metadata want to update.</span>
+<span class="sd">        :param resource_title: The title to be placed on the resource.</span>
+<span class="sd">        :param resource_supplemental_information: The supplemental information to be placed on the resource.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">resource_type</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">):</span>
+            <span class="n">resource_type</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">resource_type</span><span class="si">}</span><span class="s2">s&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">resource_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">,</span> <span class="s2">&quot;documents&quot;</span><span class="p">,</span> <span class="s2">&quot;maps&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Resource type not allowed&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/</span><span class="si">{</span><span class="n">resource_type</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">resource_id</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="n">metadata_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">resource_title</span><span class="p">:</span>
+            <span class="n">metadata_data</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resource_title</span>
+        <span class="k">if</span> <span class="n">resource_supplemental_information</span><span class="p">:</span>
+            <span class="n">metadata_data</span><span class="p">[</span><span class="s2">&quot;supplemental_information&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resource_supplemental_information</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Authorization&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">metadata_data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">metadata_data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Metadata patched successfully!&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error when performing PATH: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.set_permiss">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.set_permiss">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_permiss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">permiss_data</span><span class="p">:</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The `set_permiss` method is responsible for setting permissions for a specified resource.</span>
+<span class="sd">        It targets the permissions API v2 endpoint and uses a &#39;PATCH&#39; request to update the permissions based on the provided `permiss_data`.</span>
+
+<span class="sd">        :param resource_id: ID of the resource whose permiss want to update.</span>
+<span class="sd">        :param permiss_data: JSON/dict object with desired permission settings. </span>
+<span class="sd">        </span>
+<span class="sd">        Example JSON:</span>
+<span class="sd">        .. code-block:: json</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;users&quot;: [</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;none&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;view&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;download&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;edit&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;manage&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;user_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;owner&quot;</span>
+<span class="sd">                }</span>
+<span class="sd">            ],</span>
+<span class="sd">                &quot;groups&quot;: [</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;group_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;none&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;group_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;none&quot;</span>
+<span class="sd">                }</span>
+<span class="sd">            ],</span>
+<span class="sd">                &quot;organizations&quot;: [</span>
+<span class="sd">                {</span>
+<span class="sd">                &quot;id&quot;: &lt;organization_id&gt;,</span>
+<span class="sd">                &quot;permissions&quot;: &quot;edit&quot;</span>
+<span class="sd">                }</span>
+
+<span class="sd">            ]</span>
+
+<span class="sd">        }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s1">/api/v2/resources/</span><span class="si">{</span><span class="n">resource_id</span><span class="si">}</span><span class="s1">/permissions&#39;</span>
+
+            <span class="k">if</span> <span class="s2">&quot;groups&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">permiss_data</span><span class="p">:</span>
+                <span class="n">permiss_data</span><span class="p">[</span><span class="s2">&quot;groups&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="s2">&quot;organizations&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">permiss_data</span><span class="p">:</span>
+                <span class="n">permiss_data</span><span class="p">[</span><span class="s2">&quot;organizations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">permiss_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">),</span> <span class="n">json</span><span class="o">=</span><span class="n">permiss_data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="n">response_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execution ID: </span><span class="si">{</span><span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;execution_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execution details: </span><span class="si">{</span><span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;status_url&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">({</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">})</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;An error occurred setting permissions.&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_get_execution_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">execution_id</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method that gets metadata/information from a given execution. For example when a resource is uploaded.</span>
+
+<span class="sd">        :param execution_id: ID of the execution from which want to obtain the information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/v2/resource-service/execution-status/</span><span class="si">{</span><span class="n">execution_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execution ID: </span><span class="si">{</span><span class="n">execution_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="p">:</span>
+                <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Authorization&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_api_token</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gn_username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gn_password</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execution information: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error getting execution information: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+<div class="viewcode-block" id="GeoNodeHook.get_connection_form_widgets">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.get_connection_form_widgets">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_connection_form_widgets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="kn">from</span> <span class="nn">flask_appbuilder.fieldwidgets</span> <span class="kn">import</span> <span class="n">BS3TextFieldWidget</span><span class="p">,</span> <span class="n">BS3PasswordFieldWidget</span>
+        <span class="kn">from</span> <span class="nn">flask_babel</span> <span class="kn">import</span> <span class="n">lazy_gettext</span>
+        <span class="kn">from</span> <span class="nn">wtforms</span> <span class="kn">import</span> <span class="n">StringField</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;gn_api_token&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;GeoNode API Token&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3PasswordFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;GeoNode API Token. Optional, you can log-in with normal credentials (username, password) or with a token. You must provide one of the two&quot;</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;gs_username&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;GeoServer username&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3TextFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;GeoServer username. Optional, if GeoServer credentials are different from GeoNode credentials.&quot;</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;gs_password&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;GeoServer password&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3PasswordFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;GeoServer password. Optional, if GeoServer credentials are different from GeoNode credentials.&quot;</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;ssh_host&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;SSH host&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3TextFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;SHH host to GeoNode server&quot;</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;ssh_port&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;SSH port&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3TextFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;SHH port to GeoNode server&quot;</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;ssh_username&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;SSH username&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3TextFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;SHH username to GeoNode server&quot;</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;ssh_password&quot;</span><span class="p">:</span> <span class="n">StringField</span><span class="p">(</span>
+                <span class="n">lazy_gettext</span><span class="p">(</span><span class="s2">&quot;SSH password&quot;</span><span class="p">),</span> 
+                <span class="n">widget</span><span class="o">=</span><span class="n">BS3PasswordFieldWidget</span><span class="p">(),</span>
+                <span class="n">description</span><span class="o">=</span><span class="s2">&quot;SHH password to GeoNode server&quot;</span>
+            <span class="p">),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="GeoNodeHook.get_ui_field_behaviour">
+<a class="viewcode-back" href="../../../geonode_provider.hooks.html#geonode_provider.hooks.geonode.GeoNodeHook.get_ui_field_behaviour">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_ui_field_behaviour</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;hidden_fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="s2">&quot;schema&quot;</span><span class="p">,</span> <span class="s2">&quot;extra&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;relabeling&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="s2">&quot;Base URL&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;login&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoNode username&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoNode password&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;placeholders&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="s1">&#39;GeoNode base url. For example: &quot;https://my-geonode-url.com&quot;&#39;</span><span class="p">,</span>
+                <span class="s2">&quot;login&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoNode username&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoNode password&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gs_username&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoServer username (optional, if GeoServer credentials are different from GeoNode credentials).&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gs_password&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoServer password (optional, if GeoServer credentials are different from GeoNode credentials).&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gn_api_token&quot;</span><span class="p">:</span> <span class="s2">&quot;API Token (optional, you can log-in with normal credentials (username, password) or with a token. You must provide one of the two)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ssh_host&quot;</span><span class="p">:</span> <span class="s2">&quot;SHH host to GeoNode server&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ssh_port&quot;</span><span class="p">:</span> <span class="s2">&quot;SHH port to GeoNode server&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ssh_username&quot;</span><span class="p">:</span> <span class="s2">&quot;SHH username to GeoNode server&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ssh_password&quot;</span><span class="p">:</span> <span class="s2">&quot;SHH password to GeoNode server&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+        <span class="p">}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Kan Territory &amp; IT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
