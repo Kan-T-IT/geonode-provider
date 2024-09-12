@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>geonode_provider.hooks package &mdash; Geonode Provider 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="geonode_provider.operators package" href="geonode_provider.operators.html" />
+    <link rel="prev" title="geonode_provider package" href="geonode_provider.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Geonode Provider
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">geonode_provider</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="geonode_provider.html">geonode_provider package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="geonode_provider.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">geonode_provider.hooks package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="geonode_provider.operators.html">geonode_provider.operators package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="geonode_provider.html#module-geonode_provider">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Geonode Provider</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">geonode_provider</a></li>
+          <li class="breadcrumb-item"><a href="geonode_provider.html">geonode_provider package</a></li>
+      <li class="breadcrumb-item active">geonode_provider.hooks package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/geonode_provider.hooks.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="geonode-provider-hooks-package">
+<h1>geonode_provider.hooks package<a class="headerlink" href="#geonode-provider-hooks-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-geonode_provider.hooks.geonode">
+<span id="geonode-provider-hooks-geonode-module"></span><h2>geonode_provider.hooks.geonode module<a class="headerlink" href="#module-geonode_provider.hooks.geonode" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">geonode_provider.hooks.geonode.</span></span><span class="sig-name descname"><span class="pre">GeoNodeHook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geonode_conn_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseHook</span></code></p>
+<p>Airflow hook to interact with GeoNode.
+Methods list:
+* import_layer: runs the “importlayers” command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.
+* publish_layer: publishes a layer uploaded to the database in GeoServer.
+* update_layer: runs the “updatelayers” command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.
+* upload_dataset: uploads a layer in <em>.zip</em>, “.shp”, “dbf”, “shx”, “prj” or “.tif” format to GeoNode via API v2.
+* upload_style: uploads a style in “.sld” format to GeoServer.
+* update_style: update an existing style.
+* update_layer_style: assigns an already uploaded style to a layer.
+* upload_map: creates a map in GeoNode via API v2 from a set of datasets.
+* upload_document: uploads a document to GeoNode via API v2.
+* upload_metadata: uploads/sets metadata for a given type of resource (for the moment title and supplementary information).
+* set_permiss: sets permissions for a given resource.
+* get_execution_information: gets information/metadata about a performed execution.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.conn_name_attr">
+<span class="sig-name descname"><span class="pre">conn_name_attr</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'geonode_conn_id'</span></em><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.conn_name_attr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.conn_type">
+<span class="sig-name descname"><span class="pre">conn_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'geonode'</span></em><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.conn_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.default_conn_name">
+<span class="sig-name descname"><span class="pre">default_conn_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'geonode_default'</span></em><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.default_conn_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.get_connection_form_widgets">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_connection_form_widgets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.get_connection_form_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.get_connection_form_widgets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.get_ui_field_behaviour">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ui_field_behaviour</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.get_ui_field_behaviour"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.get_ui_field_behaviour" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.hook_name">
+<span class="sig-name descname"><span class="pre">hook_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'GeoNode'</span></em><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.hook_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.import_layer">
+<span class="sig-name descname"><span class="pre">import_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers_folder_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.import_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.import_layer" title="Link to this definition"></a></dt>
+<dd><p>This method allows to update datasets to GeoServer by passing datasets directory. Just works with directories, not with single files.
+The method uses an SSH connection to execute a Docker command within GeoNode’s container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layers_folder_path</strong> – Path to datasets directory/folder.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.publish_layer">
+<span class="sig-name descname"><span class="pre">publish_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_names</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.publish_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.publish_layer" title="Link to this definition"></a></dt>
+<dd><p>This method is utilized to publish a layer to GeoServer by utilizing an API ‘POST’ request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layer_names</strong> – The dataset name (not title) that must be published. Is possible to pass a list of datasets names to execute this method recursively.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.set_permiss">
+<span class="sig-name descname"><span class="pre">set_permiss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permiss_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.set_permiss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.set_permiss" title="Link to this definition"></a></dt>
+<dd><p>The <cite>set_permiss</cite> method is responsible for setting permissions for a specified resource.
+It targets the permissions API v2 endpoint and uses a ‘PATCH’ request to update the permissions based on the provided <cite>permiss_data</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>resource_id</strong> – ID of the resource whose permiss want to update.</p></li>
+<li><p><strong>permiss_data</strong> – JSON/dict object with desired permission settings.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example JSON:
+.. code-block:: json</p>
+<blockquote>
+<div><p>{
+“users”: [</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{</dt><dd><p>“id”: &lt;user_id&gt;,
+“permissions”: “none”</p>
+</dd>
+</dl>
+<p>},
+{</p>
+<blockquote>
+<div><p>“id”: &lt;user_id&gt;,
+“permissions”: “view”</p>
+</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div><p>“id”: &lt;user_id&gt;,
+“permissions”: “download”</p>
+</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div><p>“id”: &lt;user_id&gt;,
+“permissions”: “edit”</p>
+</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div><p>“id”: &lt;user_id&gt;,
+“permissions”: “manage”</p>
+</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div><p>“id”: &lt;user_id&gt;,
+“permissions”: “owner”</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>],
+“groups”: [</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{</dt><dd><p>“id”: &lt;group_id&gt;,
+“permissions”: “none”</p>
+</dd>
+</dl>
+<p>},
+{</p>
+<blockquote>
+<div><p>“id”: &lt;group_id&gt;,
+“permissions”: “none”</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>],
+“organizations”: [</p>
+<blockquote>
+<div><p>{
+“id”: &lt;organization_id&gt;,
+“permissions”: “edit”
+}</p>
+</div></blockquote>
+<p>]</p>
+</div></blockquote>
+<p>}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.test_connection">
+<span class="sig-name descname"><span class="pre">test_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.test_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.test_connection" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.update_layer">
+<span class="sig-name descname"><span class="pre">update_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.update_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.update_layer" title="Link to this definition"></a></dt>
+<dd><p>The update_layer method is an operator responsible for executing the update of layers.
+The method uses an SSH connection to execute a Docker command within GeoNode’s container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layer_name</strong> – The dataset name (not title) that must be updated. Is possible to pass a list of datasets names to execute this method recursively.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AirflowException</strong> – Raised if an error occurs during the layer update process.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.update_layer_style">
+<span class="sig-name descname"><span class="pre">update_layer_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.update_layer_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.update_layer_style" title="Link to this definition"></a></dt>
+<dd><p>This method is employed to update the styles of a layer by utilizing an GeoServer API ‘PUT’ request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_name</strong> – The layer/dataset name (not title) which want to apply the style.</p></li>
+<li><p><strong>style_name</strong> – The style name (already uploaded) wich want to apply to the layer/dataset.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.update_style">
+<span class="sig-name descname"><span class="pre">update_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.update_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.update_style" title="Link to this definition"></a></dt>
+<dd><p>Allows to update an existing style in ‘.sld’ format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>style_path</strong> – Path to “.sld” style file.</p></li>
+<li><p><strong>style_name</strong> – Optional. Name that the style will have in GeoServer. If isn’t defined it will take the name of “.sld” file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.upload_dataset">
+<span class="sig-name descname"><span class="pre">upload_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.upload_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.upload_dataset" title="Link to this definition"></a></dt>
+<dd><p>This method upload a dataset by GeoNode v2 API.
+Datasets can be in the following formats:
+- .zip
+- .shx, .prj, .shp and .dbf
+- .tif</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dataset_path</strong> – The dataset path that must be uploaded. The path can be a directory/folder or a single file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>For vector .zip datasets, a dictionary (json) is returned with the ID of the dataset. For individual vector or rasters datasets, the run/execution ID is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.upload_document">
+<span class="sig-name descname"><span class="pre">upload_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.upload_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.upload_document" title="Link to this definition"></a></dt>
+<dd><p>This method uploads a document to GeoNode via API v2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>document_path</strong> – Path to document that want to be uploaded.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>This method returns the document ID that just uploaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.upload_map">
+<span class="sig-name descname"><span class="pre">upload_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.upload_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.upload_map" title="Link to this definition"></a></dt>
+<dd><p>The upload_map method is responsible for creating a map in GeoNode via API v2.
+You must to choice datasets with the same projection and put them into a list. First put uppers datasets and then lowers (o base) datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasets_ids</strong> – List of datasets ids that should make up the map. Sorted from the outermost/upper layer to the lower ones.</p></li>
+<li><p><strong>map_title</strong> – The title to be placed on the map.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>This method returns a map ID just created.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.upload_metadata">
+<span class="sig-name descname"><span class="pre">upload_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_supplemental_information</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.upload_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.upload_metadata" title="Link to this definition"></a></dt>
+<dd><p>The upload_metadata method is designed to update metadata for any resource type on GeoNode by API v2
+Metadata allowed:
+- Title
+- Supplemental information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>resource_type</strong> – Type of resource wich want to be updated his metadata.</p>
+</dd>
+</dl>
+<p>Resource type allowed:
+- dataset
+- documents
+- maps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>resource_id</strong> – ID of the resource whose metadata want to update.</p></li>
+<li><p><strong>resource_title</strong> – The title to be placed on the resource.</p></li>
+<li><p><strong>resource_supplemental_information</strong> – The supplemental information to be placed on the resource.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="geonode_provider.hooks.geonode.GeoNodeHook.upload_style">
+<span class="sig-name descname"><span class="pre">upload_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/geonode_provider/hooks/geonode.html#GeoNodeHook.upload_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#geonode_provider.hooks.geonode.GeoNodeHook.upload_style" title="Link to this definition"></a></dt>
+<dd><p>Allows to upload a style in ‘.sld’ format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>style_path</strong> – Path to “.sld” style file.</p></li>
+<li><p><strong>style_name</strong> – Optional. Name that the style will have in GeoServer. If isn’t defined it will take the name of “.sld” file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-geonode_provider.hooks">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-geonode_provider.hooks" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="geonode_provider.html" class="btn btn-neutral float-left" title="geonode_provider package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="geonode_provider.operators.html" class="btn btn-neutral float-right" title="geonode_provider.operators package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Kan Territory &amp; IT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
