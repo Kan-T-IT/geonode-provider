@@ -33,11 +33,12 @@ class GeoNodeHook(BaseHook):
     """
     Airflow hook to interact with GeoNode.
     Methods list:
+
     * import_layer: runs the "importlayers" command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.
     * publish_layer: publishes a layer uploaded to the database in GeoServer.
     * update_layer: runs the "updatelayers" command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.
     * upload_dataset: uploads a layer in *.zip*, ".shp", "dbf", "shx", "prj" or ".tif" format to GeoNode via API v2.
-    * upload_style: uploads a style in ".sld" format to GeoServer. 
+    * upload_style: uploads a style in ".sld" format to GeoServer.
     * update_style: update an existing style.
     * update_layer_style: assigns an already uploaded style to a layer.
     * upload_map: creates a map in GeoNode via API v2 from a set of datasets.
@@ -801,14 +802,16 @@ class GeoNodeHook(BaseHook):
         """
         The upload_metadata method is designed to update metadata for any resource type on GeoNode by API v2
         Metadata allowed:
+
         - Title
         - Supplemental information
 
         :param resource_type: Type of resource wich want to be updated his metadata.
-        Resource type allowed:
-        - dataset
-        - documents
-        - maps
+            Resource type allowed:
+
+            - dataset
+            - documents
+            - maps
 
         :param resource_id: ID of the resource whose metadata want to update.
         :param resource_title: The title to be placed on the resource.
@@ -859,51 +862,53 @@ class GeoNodeHook(BaseHook):
         
         Example JSON:
         .. code-block:: json
+
             {
-            "users": [
+                "users": [
                 {
-                    "id": <user_id>,
-                    "permissions": "none"
+                "id": <user_id>,
+                "permissions": "none"
                 },
                 {
-                    "id": <user_id>,
-                    "permissions": "view"
+                "id": <user_id>,
+                "permissions": "view"
                 },
                 {
-                    "id": <user_id>,
-                    "permissions": "download"
+                "id": <user_id>,
+                "permissions": "download"
                 },
                 {
-                    "id": <user_id>,
-                    "permissions": "edit"
+                "id": <user_id>,
+                "permissions": "edit"
                 },
                 {
-                    "id": <user_id>,
-                    "permissions": "manage"
+                "id": <user_id>,
+                "permissions": "manage"
                 },
                 {
-                    "id": <user_id>,
-                    "permissions": "owner"
+                "id": <user_id>,
+                "permissions": "owner"
                 }
             ],
-            "groups": [
+                "groups": [
                 {
-                    "id": <group_id>,
-                    "permissions": "none"
+                "id": <group_id>,
+                "permissions": "none"
                 },
                 {
-                    "id": <group_id>,
-                    "permissions": "none"
+                "id": <group_id>,
+                "permissions": "none"
                 }
             ],
-            "organizations": [
+                "organizations": [
                 {
                 "id": <organization_id>,
                 "permissions": "edit"
                 }
-            ]
-        }
 
+            ]
+
+        }
         """
         try:
             url = f'{self.base_url}/api/v2/resources/{resource_id}/permissions'
