@@ -23,7 +23,7 @@ const initialiseBizStyle = () => {
 }
 
 window.addEventListener("resize",
-  () => (document.querySelector("li.nav-item-0 a").innerText = (window.innerWidth <= 776) ? "Top" : "Geonode Provider 0.1 documentation")
+  () => (document.querySelector("li.nav-item-0 a").innerText = (window.innerWidth <= 776) ? "Top" : "GeoNode Provider for Apache Airflow 1.1.0 documentation")
 )
 
 if (document.readyState !== "loading") initialiseBizStyle()

@@ -1,9 +1,9 @@
-.. Geonode Provider documentation master file, created by
+.. GeoNode Provider for Apache Airflow documentation master file, created by
    sphinx-quickstart on .
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Geonode Provider documentation
+GeoNode Provider for Apache Airflow documentation
 ==============
 
 Add your content using ``reStructuredText`` syntax. See the
