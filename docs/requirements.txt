@@ -3,8 +3,5 @@ sphinx-intl
 sphinx-rtd-theme
 sphinxcontrib-openapi
 sphinx-autobuild
-sphinx_rtd_theme
-sphinxcontrib-openapi
 apache-airflow-providers-ssh
 apache-airflow
-
