@@ -11,10 +11,10 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 
-project = 'Geonode Provider'
+project = 'GeoNode Provider for Apache Airflow'
 copyright = '2024, Kan Territory & IT'
 author = 'Kan Territory & IT'
-release = '0.1'
+release = '1.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
