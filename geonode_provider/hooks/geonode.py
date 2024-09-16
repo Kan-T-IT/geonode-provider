@@ -31,7 +31,7 @@ import json
 
 class GeoNodeHook(BaseHook):
     """
-    Airflow hook to interact with GeoNode.
+    Airflow hook to interact with GeoNode-prueba.
     
     Methods list:
 
