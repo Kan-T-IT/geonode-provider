@@ -862,6 +862,7 @@ class GeoNodeHook(BaseHook):
         :param permiss_data: JSON/dict object with desired permission settings. 
         
         Example JSON:
+        
         .. code-block:: json
 
             {
