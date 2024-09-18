@@ -179,55 +179,53 @@ It targets the permissions API v2 endpoint and uses a ‘PATCH’ request to upd
 </ul>
 </dd>
 </dl>
-<p>Example JSON:
-.. code-block:: json</p>
-<blockquote>
-<div><dl class="simple">
-<dt>{</dt><dd><p>“users”: [
-{
-“id”: &lt;user_id&gt;,
-“permissions”: “none”
-},
-{
-“id”: &lt;user_id&gt;,
-“permissions”: “view”
-},
-{
-“id”: &lt;user_id&gt;,
-“permissions”: “download”
-},
-{
-“id”: &lt;user_id&gt;,
-“permissions”: “edit”
-},
-{
-“id”: &lt;user_id&gt;,
-“permissions”: “manage”
-},
-{
-“id”: &lt;user_id&gt;,
-“permissions”: “owner”
-}</p>
-</dd>
-<dt>],</dt><dd><p>“groups”: [
-{
-“id”: &lt;group_id&gt;,
-“permissions”: “none”
-},
-{
-“id”: &lt;group_id&gt;,
-“permissions”: “none”
-}</p>
-</dd>
-<dt>],</dt><dd><p>“organizations”: [
-{
-“id”: &lt;organization_id&gt;,
-“permissions”: “edit”
-}</p>
-</dd>
-</dl>
-<p>]</p>
-</div></blockquote>
+<p>Example JSON:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;users&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;view&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;download&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;edit&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;manage&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;owner&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;groups&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;group_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;group_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;organizations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;orga</span><span class="kc">n</span><span class="err">iza</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="err">_id&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;permissions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;edit&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">]</span>
+</pre></div>
+</div>
 <p>}</p>
 </dd></dl>
 
