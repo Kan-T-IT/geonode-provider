@@ -184,7 +184,7 @@ class GeoNodeHook(BaseHook):
 
     def import_layer(self, layers_folder_path:str) -> None:
         """
-        This method allows to update datasets to GeoServer by passing datasets directory. Just works with directories, not with single files.
+        This method allows to update datasets to GeoServer by passing datasets directory. Only works with directories, not with single files.
         The method uses an SSH connection to execute a Docker command within GeoNode's container.
 
         :param layers_folder_path: Path to datasets directory/folder.
