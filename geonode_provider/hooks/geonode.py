@@ -33,18 +33,19 @@ class GeoNodeHook(BaseHook):
     """
     Airflow hook to interact with GeoNode.
     Methods list:
-    * import_layer: runs the "importlayers" command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.
-    * publish_layer: publishes a layer uploaded to the database in GeoServer.
-    * update_layer: runs the "updatelayers" command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.
-    * upload_dataset: uploads a layer in *.zip*, ".shp", "dbf", "shx", "prj" or ".tif" format to GeoNode via API v2.
-    * upload_style: uploads a style in ".sld" format to GeoServer. 
-    * update_style: update an existing style.
-    * update_layer_style: assigns an already uploaded style to a layer.
-    * upload_map: creates a map in GeoNode via API v2 from a set of datasets.
-    * upload_document: uploads a document to GeoNode via API v2.
-    * upload_metadata: uploads/sets metadata for a given type of resource (for the moment title and supplementary information).
-    * set_permiss: sets permissions for a given resource.
-    * get_execution_information: gets information/metadata about a performed execution.
+
+        * import_layer: runs the "importlayers" command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.
+        * publish_layer: publishes a layer uploaded to the database in GeoServer.
+        * update_layer: runs the "updatelayers" command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.
+        * upload_dataset: uploads a layer in *.zip*, ".shp", "dbf", "shx", "prj" or ".tif" format to GeoNode via API v2.
+        * upload_style: uploads a style in ".sld" format to GeoServer.
+        * update_style: update an existing style.
+        * update_layer_style: assigns an already uploaded style to a layer.
+        * upload_map: creates a map in GeoNode via API v2 from a set of datasets.
+        * upload_document: uploads a document to GeoNode via API v2.
+        * upload_metadata: uploads/sets metadata for a given type of resource (for the moment title and supplementary information).
+        * set_permiss: sets permissions for a given resource.
+        * get_execution_information: gets information/metadata about a performed execution.
     """
     conn_name_attr = 'geonode_conn_id'
     default_conn_name = "geonode_default"
@@ -183,6 +184,7 @@ class GeoNodeHook(BaseHook):
     def import_layer(self, layers_folder_path:str) -> None:
         """
         This method allows to update datasets to GeoServer by passing datasets directory. Just works with directories, not with single files.
+
         The method uses an SSH connection to execute a Docker command within GeoNode's container.
 
         :param layers_folder_path: Path to datasets directory/folder.
@@ -317,9 +319,10 @@ class GeoNodeHook(BaseHook):
         """
         This method upload a dataset by GeoNode v2 API.
         Datasets can be in the following formats:
-        - .zip
-        - .shx, .prj, .shp and .dbf
-        - .tif
+
+            - .zip
+            - .shx, .prj, .shp and .dbf
+            - .tif
 
         :param dataset_path: The dataset path that must be uploaded. The path can be a directory/folder or a single file.
 
@@ -801,14 +804,16 @@ class GeoNodeHook(BaseHook):
         """
         The upload_metadata method is designed to update metadata for any resource type on GeoNode by API v2
         Metadata allowed:
-        - Title
-        - Supplemental information
+
+            - Title
+            - Supplemental information
 
         :param resource_type: Type of resource wich want to be updated his metadata.
         Resource type allowed:
-        - dataset
-        - documents
-        - maps
+
+            - dataset
+            - documents
+            - maps
 
         :param resource_id: ID of the resource whose metadata want to update.
         :param resource_title: The title to be placed on the resource.
@@ -858,7 +863,9 @@ class GeoNodeHook(BaseHook):
         :param permiss_data: JSON/dict object with desired permission settings. 
         
         Example JSON:
+
         .. code-block:: json
+
             {
             "users": [
                 {
